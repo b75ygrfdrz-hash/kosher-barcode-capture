@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kosher SA · Barcode Capture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --navy:#1a3a6b;
+    --navy-deep:#122b50;
+    --gold:#f5a623;
+    --ink:#1b2430;
+    --muted:#5e6b7a;
+    --line:#e5e9f0;
+    --bg:#f3f5f9;
+    --card:#ffffff;
+    --ok:#1e8e4e;
+    --ok-bg:#e7f5ec;
+    --warn:#b5721a;
+    --warn-bg:#fdf3e2;
+    --no:#c23a3a;
+    --no-bg:#fbe9e9;
+    --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.45;
+    padding-bottom:88px;
+  }
+  .wrap{max-width:620px;margin:0 auto;
+    padding-left:max(16px,env(safe-area-inset-left,0px));
+    padding-right:max(16px,env(safe-area-inset-right,0px));}
+
+  /* header */
+  header{background:var(--navy);color:#fff;
+    padding-top:max(18px,env(safe-area-inset-top,0px));}
+  .hwrap{max-width:620px;margin:0 auto;
+    padding-left:max(16px,env(safe-area-inset-left,0px));
+    padding-right:max(16px,env(safe-area-inset-right,0px));
+    padding-bottom:18px;}
+  .brandline{display:flex;align-items:center;gap:10px;padding-top:14px}
+  .diamond{width:26px;height:26px;background:var(--gold);transform:rotate(45deg);border-radius:5px;flex:0 0 auto}
+  .brandline b{font-weight:800;letter-spacing:.2px;font-size:15px}
+  .brandline span{opacity:.75;font-size:12px;display:block;font-weight:500}
+  h1{font-size:23px;font-weight:800;margin:16px 0 6px;letter-spacing:-.3px;text-wrap:balance}
+  h1 em{font-style:normal;color:var(--gold)}
+  header p{margin:0;opacity:.9;font-size:14.5px;max-width:48ch}
+
+  /* cards */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:16px}
+  .card h2{font-size:15px;font-weight:700;margin:0 0 4px}
+  .card p{margin:0;color:var(--muted);font-size:14px}
+
+  .ways{display:grid;gap:12px;margin-top:16px}
+  .way{display:flex;gap:13px;align-items:flex-start}
+  .num{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;
+    font-weight:700;font-size:14px;display:grid;place-items:center}
+  .way b{font-size:15px}
+  .way .sub{color:var(--muted);font-size:13.5px;margin-top:1px}
+  .mail{font-weight:600;color:var(--navy);word-break:break-all}
+
+  /* progress */
+  .prog{position:sticky;top:0;z-index:5;background:var(--bg);
+    padding-top:12px;padding-bottom:4px;margin-top:4px}
+  .progrow{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .progrow b{color:var(--ink);font-size:14px;font-weight:700}
+  .bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+  .bar>i{display:block;height:100%;width:0;background:var(--gold);transition:width .25s ease}
+
+  /* product rows */
+  ul.list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
+  li.prod{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px}
+  li.prod.done{border-color:var(--ok);background:linear-gradient(0deg,var(--ok-bg),var(--ok-bg))}
+  .ptop{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+  .pname{font-weight:600;font-size:14.5px;line-height:1.3}
+  .pcat{color:var(--muted);font-size:12px;margin-top:2px}
+  .chip{flex:0 0 auto;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
+  .chip.kosher{background:var(--ok-bg);color:var(--ok)}
+  .chip.conditional{background:var(--warn-bg);color:var(--warn)}
+  .chip.not_kosher{background:var(--no-bg);color:var(--no)}
+
+  .pin{display:flex;gap:8px;margin-top:12px;align-items:center}
+  .pin input{flex:1 1 auto;min-width:0;font-family:var(--font);font-size:16px;font-weight:600;
+    letter-spacing:.5px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;color:var(--ink);background:#fff}
+  .pin input:focus{outline:none;border-color:var(--navy)}
+  .pin input::placeholder{font-weight:500;letter-spacing:normal;color:#aab3c0}
+  .scan{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;background:var(--navy);color:#fff;
+    border:none;border-radius:10px;padding:0 14px;height:44px;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--font)}
+  .scan:active{transform:translateY(1px)}
+  .scan svg{width:18px;height:18px}
+  .doneflag{display:none;align-items:center;gap:7px;margin-top:11px;color:var(--ok);font-weight:700;font-size:14px}
+  .doneflag svg{width:18px;height:18px;flex:0 0 auto}
+  .doneflag .bcval{letter-spacing:.5px}
+  li.prod.done .doneflag{display:flex}
+  li.prod.done .pin{display:none}
+  .clearbtn{margin-left:auto;background:none;border:none;color:var(--muted);font-size:12.5px;text-decoration:underline;cursor:pointer;font-family:var(--font)}
+
+  /* submit bar */
+  .submitbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+    padding:12px max(16px,env(safe-area-inset-left,0px));
+    padding-bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:6}
+  .submitbar .inner{max-width:620px;margin:0 auto;display:flex;gap:12px;align-items:center}
+  .submitbar .count{font-size:13px;color:var(--muted);flex:1 1 auto}
+  .submitbar .count b{color:var(--ink)}
+  .send{background:var(--gold);color:#3a2a07;border:none;border-radius:12px;padding:13px 20px;font-weight:800;
+    font-size:15px;cursor:pointer;font-family:var(--font)}
+  .send[disabled]{background:#e8ebf1;color:#aab3c0;cursor:default}
+
+  /* camera overlay */
+  .cam{position:fixed;inset:0;background:#000;z-index:50;display:none;flex-direction:column}
+  .cam.on{display:flex}
+  .cam video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+  .cam .camtop{position:relative;z-index:2;color:#fff;padding:max(16px,env(safe-area-inset-top,0px)) 18px 14px;
+    background:linear-gradient(180deg,rgba(0,0,0,.7),transparent)}
+  .cam .camtop .lbl{font-size:12px;opacity:.8;text-transform:uppercase;letter-spacing:.8px}
+  .cam .camtop .pn{font-size:17px;font-weight:700;margin-top:2px}
+  .reticle{position:absolute;z-index:2;left:50%;top:46%;transform:translate(-50%,-50%);
+    width:min(78vw,340px);height:150px;border:3px solid rgba(255,255,255,.9);border-radius:16px;
+    box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+  .reticle .scanline{position:absolute;left:8px;right:8px;top:50%;height:3px;background:var(--gold);
+    border-radius:2px;animation:sweep 1.6s ease-in-out infinite}
+  @keyframes sweep{0%{top:14%}50%{top:86%}100%{top:14%}}
+  .camhint{position:absolute;z-index:2;left:0;right:0;bottom:calc(96px + env(safe-area-inset-bottom,0px));
+    text-align:center;color:#fff;font-size:14px;opacity:.9;padding:0 24px}
+  .camclose{position:absolute;z-index:3;left:0;right:0;bottom:max(22px,env(safe-area-inset-bottom,0px));
+    display:flex;justify-content:center}
+  .camclose button{background:#fff;color:var(--ink);border:none;border-radius:99px;padding:13px 26px;
+    font-weight:700;font-size:15px;font-family:var(--font);cursor:pointer}
+  .camerr{position:absolute;z-index:3;inset:auto 18px 120px;color:#fff;background:rgba(194,58,58,.95);
+    padding:12px 14px;border-radius:10px;font-size:13.5px;display:none}
+
+  /* thank you */
+  .thanks{display:none;text-align:center;padding:30px 4px}
+  .thanks.on{display:block}
+  .thanks .tick{width:66px;height:66px;border-radius:50%;background:var(--ok-bg);color:var(--ok);
+    display:grid;place-items:center;margin:0 auto 14px}
+  .thanks .tick svg{width:34px;height:34px}
+  .thanks h2{font-size:20px;margin:0 0 6px}
+  .thanks p{color:var(--muted);margin:0 auto;max-width:42ch}
+  .summ{text-align:left;margin:18px auto 0;max-width:460px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:6px 14px}
+  .summ div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .summ div:last-child{border-bottom:none}
+  .summ .bc{font-weight:700;letter-spacing:.5px;color:var(--navy)}
+  .foot{color:var(--muted);font-size:12px;text-align:center;margin:22px 0 8px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="brandline">
+      <span class="diamond"></span>
+      <b>KOSHER SOUTH AFRICA<span>Official product database</span></b>
+    </div>
+    <h1>Help us put <em>KOO</em> on the kosher scanner</h1>
+    <p>We're building the official Kosher SA app so shoppers can scan a product and instantly see it's certified. We just need the barcode for each of your products.</p>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+
+  <div class="card">
+    <h2>Two easy ways. Pick whichever suits you.</h2>
+    <div class="ways">
+      <div class="way">
+        <div class="num">1</div>
+        <div>
+          <b>Already have a price list?</b>
+          <div class="sub">Just email it to us and we'll pull the barcodes out ourselves. Any format. <span class="mail">koshersa@uos.co.za</span></div>
+        </div>
+      </div>
+      <div class="way">
+        <div class="num">2</div>
+        <div>
+          <b>Or scan them right here</b>
+          <div class="sub">Tap <b>Scan</b> next to a product and point your camera at the barcode. Or type the number in. Then send it to us at the bottom.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prog">
+    <div class="progrow"><span>Your KOO products</span><b><span id="doneN">0</span> of <span id="totalN">0</span> added</b></div>
+    <div class="bar"><i id="barfill"></i></div>
+  </div>
+
+  <ul class="list" id="list"></ul>
+
+  <p class="foot">Kosher SA will confirm every barcode before it goes live. Thank you for helping.</p>
+</main>
+
+<!-- thank you view -->
+<div class="thanks wrap" id="thanks">
+  <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+  <h2>Thank you!</h2>
+  <p>We've received <b id="sentN">0</b> barcode<span id="sentS">s</span> for KOO. Kosher SA will check them and add them to the scanner.</p>
+  <div class="summ" id="summ"></div>
+  <p class="foot">You can close this page now.</p>
+</div>
+
+<!-- submit bar -->
+<div class="submitbar" id="submitbar">
+  <div class="inner">
+    <div class="count"><b id="countN">0</b> ready to send</div>
+    <button class="send" id="sendBtn" disabled>Send to Kosher SA</button>
+  </div>
+</div>
+
+<!-- camera overlay -->
+<div class="cam" id="cam">
+  <video id="video" playsinline muted></video>
+  <div class="camtop">
+    <div class="lbl">Scanning</div>
+    <div class="pn" id="camName">Product</div>
+  </div>
+  <div class="reticle"><div class="scanline"></div></div>
+  <div class="camhint">Hold the barcode inside the box</div>
+  <div class="camerr" id="camerr"></div>
+  <div class="camclose"><button id="camClose">Cancel</button></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ----- certified products for this brand (embedded, real Kosher SA data) -----
+  var BRAND = "KOO";
+  var PRODUCTS = [
+    {"id":"1546","name":"Koo Baked Beans In Tomato Sauce","category":"Vegetables · Tinned & Bottled","status":"kosher"},
+    {"id":"1547","name":"Koo Baked Beans In Tomato Sauce Lite","category":"Vegetables · Tinned & Bottled","status":"kosher"},
+    {"id":"1756","name":"Chakalaka Range","category":"Vegetables · Tinned & Bottled","status":"conditional"},
+    {"id":"1800","name":"Tapioca","category":"Health Foods","status":"kosher"},
+    {"id":"1801","name":"Pearled Barley","category":"Beans & Legumes","status":"kosher"},
+    {"id":"2772","name":"Sauerkraut","category":"Vegetables · Tinned & Bottled","status":"kosher"},
+    {"id":"3455","name":"Koo Butter Beans In Tangy Sauce","category":"Vegetables · Tinned & Bottled","status":"kosher"},
+    {"id":"3456","name":"Koo Mixed Vegetables · Cape Malay Curry","category":"Vegetables · Tinned & Bottled","status":"kosher"},
+    {"id":"3457","name":"Koo Mixed Vegetables · Durban Curry Sauce","category":"Vegetables · Tinned & Bottled","status":"kosher"},
+    {"id":"3458","name":"Koo Red Kidney Bean Salad In Brine","category":"Vegetables · Tinned & Bottled","status":"kosher"},
+    {"id":"3459","name":"Koo Sweetcorn & Vegetable In Chakalaka Sauce","category":"Vegetables · Tinned & Bottled","status":"kosher"},
+    {"id":"3460","name":"Koo Sweetcorn Potatoes & Green Peppers In Curry Sauce","category":"Vegetables · Tinned & Bottled","status":"kosher"}
+  ];
+  var CHIP = {kosher:"Kosher", conditional:"Check note", not_kosher:"Not kosher"};
+
+  var captured = {}; // id -> barcode
+  var listEl = document.getElementById('list');
+  var totalN = document.getElementById('totalN');
+  var doneN = document.getElementById('doneN');
+  var barfill = document.getElementById('barfill');
+  var countN = document.getElementById('countN');
+  var sendBtn = document.getElementById('sendBtn');
+
+  totalN.textContent = PRODUCTS.length;
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  // build rows
+  PRODUCTS.forEach(function(p){
+    var li = document.createElement('li');
+    li.className = 'prod';
+    li.id = 'p_' + p.id;
+    li.innerHTML =
+      '<div class="ptop"><div><div class="pname">'+esc(p.name)+'</div><div class="pcat">'+esc(p.category)+'</div></div>'+
+      '<span class="chip '+p.status+'">'+CHIP[p.status]+'</span></div>'+
+      '<div class="pin">'+
+        '<input type="text" inputmode="numeric" autocomplete="off" placeholder="Barcode number" '+
+          'data-id="'+p.id+'" aria-label="Barcode for '+esc(p.name)+'">'+
+        '<button class="scan" data-id="'+p.id+'" data-name="'+esc(p.name)+'" type="button">'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M6 12h12"/></svg>'+
+          'Scan</button>'+
+      '</div>'+
+      '<div class="doneflag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'+
+        '<span class="bcval"></span>'+
+        '<button class="clearbtn" data-id="'+p.id+'" type="button">change</button></div>';
+    listEl.appendChild(li);
+  });
+
+  function validBarcode(v){ v=(v||'').replace(/\D/g,''); return v.length>=7 && v.length<=14 ? v : null; }
+
+  function setCaptured(id, barcode){
+    var v = validBarcode(barcode);
+    var li = document.getElementById('p_'+id);
+    if(!v){ return false; }
+    captured[id] = v;
+    li.classList.add('done');
+    li.querySelector('.bcval').textContent = v;
+    refresh();
+    return true;
+  }
+  function clearCaptured(id){
+    delete captured[id];
+    var li = document.getElementById('p_'+id);
+    li.classList.remove('done');
+    var inp = li.querySelector('input'); if(inp) inp.value='';
+    refresh();
+  }
+
+  function refresh(){
+    var n = Object.keys(captured).length;
+    doneN.textContent = n;
+    countN.textContent = n;
+    barfill.style.width = (n/PRODUCTS.length*100)+'%';
+    sendBtn.disabled = n===0;
+  }
+
+  // events: manual entry + scan + clear
+  listEl.addEventListener('change', function(e){
+    if(e.target.tagName==='INPUT'){
+      var id=e.target.getAttribute('data-id');
+      if(!setCaptured(id, e.target.value)){ if(e.target.value.trim()!=='') e.target.style.borderColor='var(--no)'; }
+      else e.target.style.borderColor='';
+    }
+  });
+  listEl.addEventListener('click', function(e){
+    var scanBtn = e.target.closest('.scan');
+    if(scanBtn){ openCam(scanBtn.getAttribute('data-id'), scanBtn.getAttribute('data-name')); return; }
+    var clr = e.target.closest('.clearbtn');
+    if(clr){ clearCaptured(clr.getAttribute('data-id')); }
+  });
+
+  // ---------- camera scanning ----------
+  var cam = document.getElementById('cam');
+  var video = document.getElementById('video');
+  var camName = document.getElementById('camName');
+  var camerr = document.getElementById('camerr');
+  var reader = null, activeId = null;
+
+  function makeReader(){
+    try{
+      var hints = new Map();
+      var F = ZXing.BarcodeFormat;
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128]);
+      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+      return new ZXing.BrowserMultiFormatReader(hints, 400);
+    }catch(err){ return null; }
+  }
+
+  function openCam(id, name){
+    activeId = id;
+    camName.textContent = name;
+    camerr.style.display='none';
+    cam.classList.add('on');
+    if(!reader) reader = makeReader();
+    if(!reader || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      showCamErr("This browser can't open the camera. You can type the number in instead."); return;
+    }
+    var constraints = { video: { facingMode: { ideal: "environment" } } };
+    reader.decodeFromConstraints(constraints, video, function(result, err){
+      if(result){
+        var text = result.getText ? result.getText() : (result.text||'');
+        onDecoded(text);
+      }
+      // ignore per-frame NotFound errors
+    }).catch(function(e){
+      showCamErr("Couldn't start the camera (" + (e && e.name ? e.name : 'blocked') + "). Type the number in instead.");
+    });
+  }
+
+  function onDecoded(text){
+    var v = validBarcode(text);
+    if(!v) return;
+    try{ if(navigator.vibrate) navigator.vibrate(90); }catch(e){}
+    // reflect into the input + mark done
+    var li = document.getElementById('p_'+activeId);
+    if(li){ var inp=li.querySelector('input'); if(inp) inp.value=v; }
+    setCaptured(activeId, v);
+    closeCam();
+    if(li){ li.scrollIntoView({behavior:'smooth', block:'center'}); }
+  }
+
+  function showCamErr(msg){ camerr.textContent=msg; camerr.style.display='block'; }
+
+  function closeCam(){
+    cam.classList.remove('on');
+    try{ if(reader) reader.reset(); }catch(e){}
+  }
+  document.getElementById('camClose').addEventListener('click', closeCam);
+
+  // ---------- submit ----------
+  // When the Kosher SA submission endpoint is live, POST there. Until then we
+  // collect locally and show a confirmation so nothing is lost.
+  var SUBMIT_URL = ""; // e.g. https://www.koshersa.co.za/wp-json/kosher/v1/barcodes/submit
+
+  sendBtn.addEventListener('click', function(){
+    var items = Object.keys(captured).map(function(id){
+      var p = PRODUCTS.filter(function(x){return x.id===id;})[0];
+      return { barcode: captured[id], kid: parseInt(id,10), matched_name: p?p.name:"", source: "brand:"+BRAND };
+    });
+    sendBtn.disabled = true; sendBtn.textContent = "Sending…";
+    var done = function(){ showThanks(items); };
+    if(SUBMIT_URL){
+      fetch(SUBMIT_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(items)})
+        .then(done).catch(done);
+    } else {
+      setTimeout(done, 350);
+    }
+  });
+
+  function showThanks(items){
+    document.getElementById('main').style.display='none';
+    document.getElementById('submitbar').style.display='none';
+    document.getElementById('sentN').textContent = items.length;
+    document.getElementById('sentS').textContent = items.length===1?'':'s';
+    var summ = document.getElementById('summ');
+    summ.innerHTML = items.map(function(it){
+      return '<div><span>'+esc(it.matched_name)+'</span><span class="bc">'+esc(it.barcode)+'</span></div>';
+    }).join('');
+    var t = document.getElementById('thanks'); t.classList.add('on');
+    window.scrollTo(0,0);
+  }
+
+  refresh();
+})();
+</script>
+</body>
+</html>
